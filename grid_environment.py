@@ -10,7 +10,6 @@ class GridEnvironment:
         self.grid = np.zeros((self.size, self.size), dtype=int)
         self.start = None
         self.goal = None
-        # Run setup helpers
         self.place_obstacles()
         self.place_start_and_goal(start, goal)
 
@@ -25,11 +24,10 @@ class GridEnvironment:
                 self.grid[random_row][random_column] = 1
                 placed += 1
 
-    #Get a random row and random index within that row, that position must equal 0 to satisfy
+    #get a random row and random index within that row, that position must equal 0 to satisfy
     # a fair starting point and not intrude an occupying obstacle space
 
     def place_start_and_goal(self, start=None, goal=None):
-        #setting starting point (user-chosen, or random)
         if start:
             self.grid[start] = 0
             self.start = start

@@ -1,43 +1,28 @@
 from collections import deque
-
-def get_neighbors(node, grid):
-    r, c = node
-    rows, cols = grid.shape
-    neighbors = []
-    
-    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-    for dr, dc in directions:
-        nr, nc = r + dr, c + dc
-        if 0 <= nr < rows and 0 <= nc < cols and grid[nr, nc] == 0:
-            neighbors.append((nr, nc))
-            
-    return neighbors
-
 def bfs_search(grid, start, goal):
-    if start == goal:
-        return [start], [start], []
-        
-    queue = deque([[start]])
-    visited = {start}
-    visited_order = [start]
-    tree_edges = []  
-    
+    # Initialize queue with starting node
+    queue = deque([start]) 
+    # stores node:parent node
+    visited = {start: None} 
+    visited_order = [] # to store the order of visited nodes
+
+    directions = [(-1,0), (1,0), (0,-1), (0,1)]
     while queue:
-        current_path = queue.popleft()  
-        current_node = current_path[-1]
-        
-        if current_node == goal:
-            return current_path, visited_order, tree_edges
-            
-        for neighbor in get_neighbors(current_node, grid):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                visited_order.append(neighbor)
-                
-                tree_edges.append((current_node, neighbor))
-                
-                new_path = list(current_path)
-                new_path.append(neighbor)
-                queue.append(new_path)  
-                
-    return None, visited_order, tree_edges
+        current = queue.popleft()
+        visited_order.append(current)
+        if current == goal:
+            # reconstruct path
+            path = []
+            while current is not None:
+                path.append(current)
+                current = visited[current] #current points to the value of visited's key, where key is current --> key : value
+
+            return path[::-1], visited_order, visited 
+        for row_direction, col_direction in directions:
+            row = current[0] + row_direction
+            col = current[1] + col_direction
+            # checks if node is within bounds, not an obstacle, and not visited
+            if (0 <= row < len(grid)) and (0 <= col < len(grid[0])) and grid[row][col] == 0 and (row, col) not in visited:
+                visited[(row, col)] = current #adding to the dictionary visited node : parent node (came from)
+                queue.append((row, col)) # add the neighbour node to the queue
+    return None, visited_order, visited

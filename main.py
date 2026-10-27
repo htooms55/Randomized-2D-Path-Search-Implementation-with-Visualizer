@@ -1,54 +1,78 @@
-import matplotlib.pyplot as plt
-from grid_environment import GridEnvironment
+import random
+from grid_environment import create_grid
+from visualize_maze import draw_grid
 from search import bfs_search
-from visualize_maze import visualize_grid
-from visualize_tree import visualize_search_tree
 
-def main():
-    print("BFS Maze Search Visualizer")
-    print("-" * 40)
-    # Get user input, then generate the "maze"
-    size = get_number("Select grid size N (N x N)", 15, 3, 50, int)
-    percent = get_number("Obstacle percentage (0-90)", 15, 0, 90, float)
-    start_in = choose_location("Start", size)
-    goal_in = choose_location("Goal", size)
-    if start_in and start_in == goal_in:
-        print("Start and goal can't be the same cell, so the goal will be random.")
-        goal_in = None
+print("\nWelcome to Randomized 2D Path Search")
 
-    env = GridEnvironment(grid_size=size, obstacle_ratio=percent / 100, start=start_in, goal=goal_in)
-    grid, start, goal = env.grid, env.start, env.goal
+# choose grid size
+while True:
+    size_input = input("\nEnter grid size (5 - 15) [Press Enter for 15]: ").strip()
+    if size_input == "":
+        size = 15
+        break
+    if size_input.isdigit() and 5 <= int(size_input) <= 15:
+        size = int(size_input)
+        break
+    print("Please enter a whole number between 5 and 20.")
 
-    path, visited_order, tree_edges = bfs_search(grid, start, goal)
+# obstacle ratio
+while True:
+    print("\nChoose Obstacle Ratio")
+    print("1. Random Obstacle Ratio (15% - 30%)")
+    print("2. Custom Obstacle Ratio (15% - 30%)")
+    print("Press Enter for Default Obstacle Ratio (15%)")
+    choice = input("\nEnter your choice: ").strip()
 
-    visualize_grid(grid, start, goal, path=path, visited_order=visited_order)
-    visualize_search_tree(start, tree_edges, path=path, goal=goal)
-    plt.show()
+    if choice == "":
+        obstacle_ratio = 0.15
+        break
+    elif choice == "1":
+        obstacle_ratio = random.randint(15, 30) / 100
+        break
+    elif choice == "2":
+        ratio_input = input("Enter obstacle ratio (15 - 30): ").strip()
+        if ratio_input.isdigit() and 15 <= int(ratio_input) <= 30:
+            obstacle_ratio = int(ratio_input) / 100
+            break
+        print("Invalid input. Please enter a number between 15 and 30.")
+    else:
+        print("Please enter 1, 2, or press Enter for default.")
 
-def get_number(prompt, default, low, high, input_type):
-    while True:
-        user_choice = input(f"{prompt} (default {default}): ").strip()
-        if user_choice == "":
-            return default
+# start and goal positions
+while True:
+    print("\nChoose Start & Goal Positions")
+    print("1. Random Start & Goal")
+    print("2. Custom Start & Goal")
+    print(f"Press Enter for Default Start & Goal (0,0) to ({size},{size})")
+    choice = input("\nEnter your choice: ").strip()
+
+    if choice == "":
+        start, goal = (0, 0), (size - 1, size - 1)
+        break
+    elif choice == "1": #generate_grid will choose random start & goal if None
+        start, goal = None, None
+        break
+    elif choice == "2":
         try:
-            value = input_type(user_choice)
-            if low <= value <= high:
-                return value
-            print(f"Please enter a value between {low} and {high}.")
-        except ValueError:
-            print("Invalid input, please enter a number.")
+            custom_start_row = input(f"Enter start position row: ").strip()
+            custom_start_col = input(f"Enter start position column: ").strip()
+            custom_goal_row = input(f"Enter goal position row: ").strip()
+            custom_goal_col = input(f"Enter goal position column: ").strip()
+            start = (int(custom_start_row), int(custom_start_col))
+            goal = (int(custom_goal_row), int(custom_goal_col))
+            
+            #check if coordinates are within bounds
+            if 0 <= start[0] < size and 0 <= start[1] < size and 0 <= goal[0] < size and 0 <= goal[1] < size:
+                break
+            print(f"Coordinates must be within 0 and {size - 1}.")
+        except (ValueError, IndexError):
+            print("Invalid input. Please enter whole numbers for row and column.")
+    else:
+        print("Please enter 1, 2, or press Enter for default.")
 
-def choose_location(name, size):
-    print(f"\n{name} location:")
-    print("1. Random Location")
-    print("2. Custom Location")
-    choice = get_number("Choose an option", 1, 1, 2, int)
-    if choice == 1:
-        return None
-    row = get_number(f" {name} row (0-{size-1}, 0 = top)", 0, 0, size - 1, int)
-    col = get_number(f" {name} column (0-{size-1}, 0 = left)", 0, 0, size - 1, int)
-    return (row, col)
+#create grid
+grid, start, goal = create_grid(size, obstacle_ratio, start, goal)
 
+draw_grid(grid, start, goal)
 
-if __name__ == "__main__":
-    main()

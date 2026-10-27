@@ -1,52 +1,29 @@
 import random
 import numpy as np
 
-class GridEnvironment:
-    def __init__(self, grid_size=15, obstacle_ratio=0.15, start=None, goal=None):
-        self.size = grid_size
-        self.obstacle_ratio = obstacle_ratio
+def create_grid(size, obstacle_ratio = 0.15, start=None, goal=None):
+    #generate random numbers between 0.0 & 1.0 for the grid
+    random_grid = np.random.rand(size, size) 
+    #converting numbers > sparsity into 1 (obstacles) and < sparsity into 0 (free space)
+    grid = (random_grid < obstacle_ratio).astype(int) 
 
-        #using numpy to create a grid
-        self.grid = np.zeros((self.size, self.size), dtype=int)
-        self.start = None
-        self.goal = None
-        self.place_obstacles()
-        self.place_start_and_goal(start, goal)
+    #creating random start and goal positions
+    if start == None:
+        start_row = random.randint(0,size-1)
+        start_column = random.randint(0,size-1)
+        start = (start_row,start_column)
+    else: 
+        start_row, start_column = start
+    
+    if goal == None:
+        goal_row = random.randint(0,size-1)
+        goal_column = random.randint(0,size-1)
+        goal = (goal_row,goal_column)
+    else: 
+        goal_row, goal_column = goal
 
-    #method for placing obstacles within the grid/maze, sets a random position as "1" to indicate an obstacle
-    def place_obstacles(self):
-        target_obstacles = int(self.size*self.size*self.obstacle_ratio)
-        placed = 0
-        while placed < target_obstacles:
-            random_row = random.randint(0, self.size-1)
-            random_column = random.randint(0, self.size-1)
-            if self.grid[random_row][random_column] == 0:
-                self.grid[random_row][random_column] = 1
-                placed += 1
+    #setting start and goal position to 0 to avoid obstacles
+    grid[start_row,start_column] = 0
+    grid[goal_row,goal_column] = 0
 
-    #get a random row and random index within that row, that position must equal 0 to satisfy
-    # a fair starting point and not intrude an occupying obstacle space
-
-    def place_start_and_goal(self, start=None, goal=None):
-        if start:
-            self.grid[start] = 0
-            self.start = start
-        else:
-            while True:
-                random_row = random.randint(0, self.size-1)
-                random_column = random.randint(0, self.size-1)
-                if self.grid[random_row][random_column] == 0 and (random_row, random_column) != goal:
-                    self.start = (random_row, random_column)
-                    break
-        #setting goal point (user-chosen, or random)
-        if goal:
-            self.grid[goal] = 0
-            self.goal = goal
-        else:
-            while True:
-                random_row = random.randint(0, self.size-1)
-                random_column = random.randint(0, self.size-1)
-                if self.grid[random_row][random_column] == 0 and (random_row, random_column) != self.start:
-                    self.goal = (random_row, random_column)
-                    break
-                
+    return grid, start, goal
